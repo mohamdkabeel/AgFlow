@@ -1,0 +1,29 @@
+services:
+  api:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      # بنكتب اسم الخدمة (sqlserver) مكان localhost — جوه شبكة Docker الداخلية،
+      # الـ Containers بتتكلم مع بعض بأسماء الخدمات مش بـ localhost
+      ConnectionStrings__DefaultConnection: "Server=sqlserver;Database=AgFlowDb;User Id=sa;Password=${SA_PASSWORD};TrustServerCertificate=True"
+      Jwt__Secret: ${JWT_SECRET}
+      Jwt__Issuer: agflow
+      Jwt__Audience: agflow-clients
+    depends_on:
+      - sqlserver
+
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: ${SA_PASSWORD}
+    ports:
+      - "1433:1433"
+    volumes:
+      # من غير الـ Volume ده، كل بيانات الـ Database هتتمسح كل مرة توقف الـ Container
+      - sqldata:/var/opt/mssql
+
+volumes:
+  sqldata:
